@@ -1,78 +1,142 @@
 import { Offer, OfferStatus } from "@/types";
-import { mockOffers } from "@/lib/mock-data";
-
-let offers: Offer[] = [...mockOffers];
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { offersApi } from "@/lib/api";
 
 export const offerService = {
   async getAll(): Promise<Offer[]> {
-    await delay(300);
-    return [...offers];
+    const response = await offersApi.getOffers();
+    return response.map((o) => ({
+      id: o.id,
+      candidateId: o.candidateId,
+      jobOrderId: o.jobOrderId,
+      offeredRole: o.offeredRole,
+      offeredSalary: String(o.offeredSalary),
+      expectedJoiningDate: new Date(o.expectedJoiningDate),
+      offerNotes: o.offerNotes,
+      status: o.status as any,
+      createdBy: o.createdBy,
+      createdAt: new Date(o.createdAt),
+      updatedAt: new Date(o.updatedAt),
+    }));
   },
 
   async getByCandidate(candidateId: string): Promise<Offer | null> {
-    await delay(300);
-    return offers.find((offer) => offer.candidateId === candidateId) || null;
+    try {
+      const response = await offersApi.getOffers(candidateId);
+      if (response.length === 0) return null;
+      const o = response[0];
+      return {
+        id: o.id,
+        candidateId: o.candidateId,
+        jobOrderId: o.jobOrderId,
+        offeredRole: o.offeredRole,
+        offeredSalary: String(o.offeredSalary),
+        expectedJoiningDate: new Date(o.expectedJoiningDate),
+        offerNotes: o.offerNotes,
+        status: o.status as any,
+        createdBy: o.createdBy,
+        createdAt: new Date(o.createdAt),
+        updatedAt: new Date(o.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   async getById(id: string): Promise<Offer | null> {
-    await delay(300);
-    return offers.find((offer) => offer.id === id) || null;
+    try {
+      const response = await offersApi.getOffer(id);
+      return {
+        id: response.id,
+        candidateId: response.candidateId,
+        jobOrderId: response.jobOrderId,
+        offeredRole: response.offeredRole,
+        offeredSalary: String(response.offeredSalary),
+        expectedJoiningDate: new Date(response.expectedJoiningDate),
+        offerNotes: response.offerNotes,
+        status: response.status as any,
+        createdBy: response.createdBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   async create(
     data: Omit<Offer, "id" | "createdAt" | "updatedAt">
   ): Promise<Offer> {
-    await delay(400);
-    const newOffer: Offer = {
-      ...data,
-      id: `offer${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const response = await offersApi.createOffer({
+      candidateId: typeof data.candidateId === 'string' ? data.candidateId : (data.candidateId as any).id,
+      jobOrderId: typeof data.jobOrderId === 'string' ? data.jobOrderId : (data.jobOrderId as any).id,
+      offeredRole: data.offeredRole,
+      offeredSalary: typeof data.offeredSalary === 'string' ? parseFloat(data.offeredSalary) : data.offeredSalary,
+      expectedJoiningDate: data.expectedJoiningDate.toISOString(),
+      offerNotes: data.offerNotes,
+      status: data.status,
+      createdBy: typeof data.createdBy === 'string' ? data.createdBy : (data.createdBy as any).id,
+    });
+
+    return {
+      id: response.id,
+      candidateId: response.candidateId,
+      jobOrderId: response.jobOrderId,
+      offeredRole: response.offeredRole,
+      offeredSalary: String(response.offeredSalary),
+      expectedJoiningDate: new Date(response.expectedJoiningDate),
+      offerNotes: response.offerNotes,
+      status: response.status as any,
+      createdBy: response.createdBy,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt),
     };
-    offers.push(newOffer);
-    return newOffer;
   },
 
   async update(
     id: string,
     data: Partial<Omit<Offer, "id" | "createdAt" | "updatedAt">>
   ): Promise<Offer | null> {
-    await delay(400);
-    const index = offers.findIndex((offer) => offer.id === id);
-    if (index === -1) return null;
+    try {
+      const updateData: any = {};
+      if (data.offeredRole !== undefined) updateData.offeredRole = data.offeredRole;
+      if (data.offeredSalary !== undefined) updateData.offeredSalary = data.offeredSalary;
+      if (data.expectedJoiningDate !== undefined) updateData.expectedJoiningDate = data.expectedJoiningDate.toISOString();
+      if (data.offerNotes !== undefined) updateData.offerNotes = data.offerNotes;
+      if (data.status !== undefined) updateData.status = data.status;
 
-    offers[index] = {
-      ...offers[index],
-      ...data,
-      updatedAt: new Date(),
-    };
-    return offers[index];
+      const response = await offersApi.updateOffer(id, updateData);
+
+      return {
+        id: response.id,
+        candidateId: response.candidateId,
+        jobOrderId: response.jobOrderId,
+        offeredRole: response.offeredRole,
+        offeredSalary: String(response.offeredSalary),
+        expectedJoiningDate: new Date(response.expectedJoiningDate),
+        offerNotes: response.offerNotes,
+        status: response.status as any,
+        createdBy: response.createdBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   async updateStatus(
     id: string,
     status: OfferStatus
   ): Promise<Offer | null> {
-    await delay(400);
-    const index = offers.findIndex((offer) => offer.id === id);
-    if (index === -1) return null;
-
-    offers[index] = {
-      ...offers[index],
-      status,
-      updatedAt: new Date(),
-    };
-    return offers[index];
+    return offerService.update(id, { status });
   },
 
   async delete(id: string): Promise<boolean> {
-    await delay(400);
-    const index = offers.findIndex((offer) => offer.id === id);
-    if (index === -1) return false;
-
-    offers.splice(index, 1);
-    return true;
+    try {
+      await offersApi.deleteOffer(id);
+      return true;
+    } catch (error) {
+      return false;
+    }
   },
 };

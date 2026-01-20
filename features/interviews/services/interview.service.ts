@@ -1,84 +1,146 @@
 import { Interview, InterviewStatus, InterviewLevel } from "@/types";
-import { mockInterviews } from "@/lib/mock-data";
-
-let interviews: Interview[] = [...mockInterviews];
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { interviewsApi } from "@/lib/api";
 
 export const interviewService = {
   async getAll(): Promise<Interview[]> {
-    await delay(300);
-    return [...interviews];
+    const response = await interviewsApi.getInterviews();
+    return response.map((iv) => ({
+      id: iv.id,
+      candidateId: iv.candidateId,
+      jobOrderId: iv.jobOrderId,
+      level: iv.level as any,
+      scheduledAt: new Date(iv.scheduledAt),
+      status: iv.status as any,
+      feedback: iv.feedback,
+      interviewerName: iv.interviewerName,
+      createdBy: iv.createdBy,
+      createdAt: new Date(iv.createdAt),
+      updatedAt: new Date(iv.updatedAt),
+    }));
   },
 
   async getByCandidate(candidateId: string): Promise<Interview[]> {
-    await delay(300);
-    return interviews.filter((iv) => iv.candidateId === candidateId);
+    const response = await interviewsApi.getInterviews(candidateId);
+    return response.map((iv) => ({
+      id: iv.id,
+      candidateId: iv.candidateId,
+      jobOrderId: iv.jobOrderId,
+      level: iv.level as any,
+      scheduledAt: new Date(iv.scheduledAt),
+      status: iv.status as any,
+      feedback: iv.feedback,
+      interviewerName: iv.interviewerName,
+      createdBy: iv.createdBy,
+      createdAt: new Date(iv.createdAt),
+      updatedAt: new Date(iv.updatedAt),
+    }));
   },
 
   async getByJobOrder(jobOrderId: string): Promise<Interview[]> {
-    await delay(300);
-    return interviews.filter((iv) => iv.jobOrderId === jobOrderId);
+    const allInterviews = await interviewService.getAll();
+    return allInterviews.filter((iv) => 
+      typeof iv.jobOrderId === 'string' ? iv.jobOrderId === jobOrderId : (iv.jobOrderId as any).id === jobOrderId
+    );
   },
 
   async getById(id: string): Promise<Interview | null> {
-    await delay(300);
-    return interviews.find((iv) => iv.id === id) || null;
+    try {
+      const response = await interviewsApi.getInterview(id);
+      return {
+        id: response.id,
+        candidateId: response.candidateId,
+        jobOrderId: response.jobOrderId,
+        level: response.level as any,
+        scheduledAt: new Date(response.scheduledAt),
+        status: response.status as any,
+        feedback: response.feedback,
+        interviewerName: response.interviewerName,
+        createdBy: response.createdBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   async create(
     data: Omit<Interview, "id" | "createdAt" | "updatedAt">
   ): Promise<Interview> {
-    await delay(400);
-    const newInterview: Interview = {
-      ...data,
-      id: `iv${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const response = await interviewsApi.createInterview({
+      candidateId: typeof data.candidateId === 'string' ? data.candidateId : (data.candidateId as any).id,
+      jobOrderId: typeof data.jobOrderId === 'string' ? data.jobOrderId : (data.jobOrderId as any).id,
+      level: data.level,
+      scheduledAt: data.scheduledAt.toISOString(),
+      status: data.status,
+      feedback: data.feedback,
+      interviewerName: data.interviewerName,
+      createdBy: typeof data.createdBy === 'string' ? data.createdBy : (data.createdBy as any).id,
+    });
+
+    return {
+      id: response.id,
+      candidateId: response.candidateId,
+      jobOrderId: response.jobOrderId,
+      level: response.level as any,
+      scheduledAt: new Date(response.scheduledAt),
+      status: response.status as any,
+      feedback: response.feedback,
+      interviewerName: response.interviewerName,
+      createdBy: response.createdBy,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt),
     };
-    interviews.push(newInterview);
-    return newInterview;
   },
 
   async update(
     id: string,
     data: Partial<Omit<Interview, "id" | "createdAt" | "updatedAt">>
   ): Promise<Interview | null> {
-    await delay(400);
-    const index = interviews.findIndex((iv) => iv.id === id);
-    if (index === -1) return null;
+    try {
+      const updateData: any = {};
+      if (data.level !== undefined) updateData.level = data.level;
+      if (data.scheduledAt !== undefined) updateData.scheduledAt = data.scheduledAt.toISOString();
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.feedback !== undefined) updateData.feedback = data.feedback;
+      if (data.interviewerName !== undefined) updateData.interviewerName = data.interviewerName;
 
-    interviews[index] = {
-      ...interviews[index],
-      ...data,
-      updatedAt: new Date(),
-    };
-    return interviews[index];
+      const response = await interviewsApi.updateInterview(id, updateData);
+
+      return {
+        id: response.id,
+        candidateId: response.candidateId,
+        jobOrderId: response.jobOrderId,
+        level: response.level as any,
+        scheduledAt: new Date(response.scheduledAt),
+        status: response.status as any,
+        feedback: response.feedback,
+        interviewerName: response.interviewerName,
+        createdBy: response.createdBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   async markCompleted(
     id: string,
     feedback?: string
   ): Promise<Interview | null> {
-    await delay(400);
-    const index = interviews.findIndex((iv) => iv.id === id);
-    if (index === -1) return null;
-
-    interviews[index] = {
-      ...interviews[index],
+    return interviewService.update(id, {
       status: InterviewStatus.COMPLETED,
       feedback,
-      updatedAt: new Date(),
-    };
-    return interviews[index];
+    });
   },
 
   async delete(id: string): Promise<boolean> {
-    await delay(400);
-    const index = interviews.findIndex((iv) => iv.id === id);
-    if (index === -1) return false;
-
-    interviews.splice(index, 1);
-    return true;
+    try {
+      await interviewsApi.deleteInterview(id);
+      return true;
+    } catch (error) {
+      return false;
+    }
   },
 };

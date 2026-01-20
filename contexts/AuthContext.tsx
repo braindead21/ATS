@@ -35,22 +35,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Get users from localStorage
-    const usersData = localStorage.getItem("ats_users");
-    const users: User[] = usersData ? JSON.parse(usersData) : [];
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-    // Find user by email and password
-    const foundUser = users.find(
-      (u) => u.email === email && (u as any).password === password
-    );
-
-    if (!foundUser) {
-      throw new Error("Invalid credentials");
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Login failed");
     }
 
-    // Remove password from user object before storing
-    const { password: _, ...userWithoutPassword } = foundUser as any;
-    const authenticatedUser = userWithoutPassword as User;
+    const userData = await response.json();
+    
+    // Convert API response to User type
+    const authenticatedUser: User = {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt),
+    };
 
     setUser(authenticatedUser);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser));
@@ -62,37 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     role: UserRole
   ) => {
-    // Get existing users
-    const usersData = localStorage.getItem("ats_users");
-    const users: any[] = usersData ? JSON.parse(usersData) : [];
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password, role }),
+    });
 
-    // Check if email already exists
-    if (users.some((u) => u.email === email)) {
-      throw new Error("Email already exists");
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Signup failed");
     }
 
-    // Create new user
-    const newUser = {
-      id: `user${Date.now()}`,
-      email,
-      name,
-      role,
-      password, // Store password in mock users (will be removed from auth user)
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const userData = await response.json();
+    
+    // Convert API response to User type
+    const authenticatedUser: User = {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt),
     };
-
-    // Add to users list
-    users.push(newUser);
-    localStorage.setItem("ats_users", JSON.stringify(users));
-
-    // Auto-login (without password in auth state)
-    const { password: _, ...userWithoutPassword } = newUser;
-    const authenticatedUser = {
-      ...userWithoutPassword,
-      createdAt: new Date(userWithoutPassword.createdAt),
-      updatedAt: new Date(userWithoutPassword.updatedAt),
-    } as User;
 
     setUser(authenticatedUser);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser));

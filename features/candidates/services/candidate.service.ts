@@ -1,59 +1,137 @@
 import { Candidate } from "@/types";
 import { CandidateStatus } from "@/lib/constants/enums";
-import { mockCandidates } from "@/lib/mock-data";
-
-// In-memory store
-let candidates: Candidate[] = [...mockCandidates];
+import { candidatesApi } from "@/lib/api";
 
 export const candidateService = {
   // Get all candidates
   getAll: async (): Promise<Candidate[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return [...candidates];
+    const response = await candidatesApi.getCandidates();
+    return response.map((c) => ({
+      id: c.id,
+      jobOrderId: c.jobOrderId,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.phone,
+      resumeUrl: c.resumeUrl,
+      linkedinUrl: c.linkedinUrl,
+      status: c.status as any,
+      currentLevel: c.currentLevel as any,
+      addedBy: c.addedBy,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt),
+    }));
   },
 
   // Get candidates by job order
   getByJobOrder: async (jobOrderId: string): Promise<Candidate[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return candidates.filter((c) => c.jobOrderId === jobOrderId);
+    const response = await candidatesApi.getCandidates(jobOrderId);
+    return response.map((c) => ({
+      id: c.id,
+      jobOrderId: c.jobOrderId,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.phone,
+      resumeUrl: c.resumeUrl,
+      linkedinUrl: c.linkedinUrl,
+      status: c.status as any,
+      currentLevel: c.currentLevel as any,
+      addedBy: c.addedBy,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt),
+    }));
   },
 
   // Get candidate by ID
   getById: async (id: string): Promise<Candidate | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return candidates.find((c) => c.id === id) || null;
+    try {
+      const response = await candidatesApi.getCandidate(id);
+      return {
+        id: response.id,
+        jobOrderId: response.jobOrderId,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        phone: response.phone,
+        resumeUrl: response.resumeUrl,
+        linkedinUrl: response.linkedinUrl,
+        status: response.status as any,
+        currentLevel: response.currentLevel as any,
+        addedBy: response.addedBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   // Create candidate
   create: async (data: Omit<Candidate, "id" | "createdAt" | "updatedAt">): Promise<Candidate> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    
-    const newCandidate: Candidate = {
-      ...data,
-      id: `cand${Date.now()}`,
-      status: CandidateStatus.NO_CONTACT,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const response = await candidatesApi.createCandidate({
+      jobOrderId: typeof data.jobOrderId === 'string' ? data.jobOrderId : (data.jobOrderId as any).id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      resumeUrl: data.resumeUrl,
+      linkedinUrl: data.linkedinUrl,
+      status: data.status || CandidateStatus.NO_CONTACT,
+      currentLevel: data.currentLevel,
+      addedBy: typeof data.addedBy === 'string' ? data.addedBy : (data.addedBy as any).id,
+    });
+
+    return {
+      id: response.id,
+      jobOrderId: response.jobOrderId,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      email: response.email,
+      phone: response.phone,
+      resumeUrl: response.resumeUrl,
+      linkedinUrl: response.linkedinUrl,
+      status: response.status as any,
+      currentLevel: response.currentLevel as any,
+      addedBy: response.addedBy,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt),
     };
-    
-    candidates.push(newCandidate);
-    return newCandidate;
   },
 
   // Update candidate
   update: async (id: string, data: Partial<Candidate>): Promise<Candidate | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    
-    const index = candidates.findIndex((c) => c.id === id);
-    if (index === -1) return null;
-    
-    candidates[index] = {
-      ...candidates[index],
-      ...data,
-      updatedAt: new Date(),
-    };
-    
-    return candidates[index];
+    try {
+      const updateData: any = {};
+      if (data.firstName !== undefined) updateData.firstName = data.firstName;
+      if (data.lastName !== undefined) updateData.lastName = data.lastName;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.resumeUrl !== undefined) updateData.resumeUrl = data.resumeUrl;
+      if (data.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.currentLevel !== undefined) updateData.currentLevel = data.currentLevel;
+
+      const response = await candidatesApi.updateCandidate(id, updateData);
+
+      return {
+        id: response.id,
+        jobOrderId: response.jobOrderId,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        phone: response.phone,
+        resumeUrl: response.resumeUrl,
+        linkedinUrl: response.linkedinUrl,
+        status: response.status as any,
+        currentLevel: response.currentLevel as any,
+        addedBy: response.addedBy,
+        createdAt: new Date(response.createdAt),
+        updatedAt: new Date(response.updatedAt),
+      };
+    } catch (error) {
+      return null;
+    }
   },
 
   // Update candidate status
@@ -63,12 +141,11 @@ export const candidateService = {
 
   // Delete candidate
   delete: async (id: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    
-    const index = candidates.findIndex((c) => c.id === id);
-    if (index === -1) return false;
-    
-    candidates.splice(index, 1);
-    return true;
+    try {
+      await candidatesApi.deleteCandidate(id);
+      return true;
+    } catch (error) {
+      return false;
+    }
   },
 };
