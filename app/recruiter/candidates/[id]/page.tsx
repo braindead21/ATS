@@ -34,6 +34,11 @@ export default function CandidateDetailPage() {
   const [showJoiningDialog, setShowJoiningDialog] = useState(false);
   const [showPostJoiningDialog, setShowPostJoiningDialog] = useState(false);
 
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateId]);
+
   if (!user) return null;
 
   const canEdit = user.role === UserRole.RECRUITER && !!jobOrder?.assignedRecruiters.includes(user.id);
@@ -45,10 +50,6 @@ export default function CandidateDetailPage() {
   const canCreateOffer = candidate?.status === CandidateStatus.HIRED;
   const canMarkJoined = candidate?.status === CandidateStatus.OFFER_ACCEPTED;
   const canPostJoining = candidate?.status === CandidateStatus.JOINED;
-
-  useEffect(() => {
-    loadData();
-  }, [candidateId]);
 
   const loadData = async () => {
     setIsLoading(true);

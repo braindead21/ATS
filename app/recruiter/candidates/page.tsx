@@ -12,11 +12,14 @@ export default function RecruiterCandidatesPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  if (!user) return null;
-
   useEffect(() => {
-    loadCandidates();
-  }, [user.id]);
+    if (user) {
+      loadCandidates();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  if (!user) return null;
 
   const loadCandidates = async () => {
     setIsLoading(true);

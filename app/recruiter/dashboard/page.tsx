@@ -11,8 +11,11 @@ export default function RecruiterDashboard() {
   const [assignedJobsCount, setAssignedJobsCount] = useState(0);
 
   useEffect(() => {
-    loadStats();
-  }, [user.id]);
+    if (user) {
+      loadStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadStats = async () => {
     const jobs = await jobOrderService.getByRecruiter(user.id);

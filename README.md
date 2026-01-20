@@ -97,13 +97,6 @@ npm run dev
 
 The application will start at **http://localhost:3000**
 
-### 4. Login with Demo Credentials
-
-| Role | Email | Password |
-|------|-------|----------|
-| **Admin** | admin@ats.com | admin123 |
-| **Leader** | leader@ats.com | leader123 |
-| **Recruiter** | recruiter1@ats.com | recruiter123 |
 
 ## 📁 Project Structure
 

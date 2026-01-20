@@ -16,11 +16,12 @@ export default function LeaderJobOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  if (!user) return null;
-
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!user) return null;
 
   const loadData = async () => {
     setIsLoading(true);

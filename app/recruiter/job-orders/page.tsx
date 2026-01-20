@@ -14,11 +14,14 @@ export default function RecruiterJobOrdersPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  if (!user) return null;
-
   useEffect(() => {
-    loadData();
-  }, [user.id]);
+    if (user) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  if (!user) return null;
 
   const loadData = async () => {
     setIsLoading(true);

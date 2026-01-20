@@ -25,13 +25,14 @@ export default function RecruiterJobOrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobOrderId]);
+
   if (!user) return null;
 
   const isAssignedToMe = jobOrder && jobOrder.assignedRecruiters.includes(user.id);
-
-  useEffect(() => {
-    loadData();
-  }, [jobOrderId]);
 
   const loadData = async () => {
     setIsLoading(true);
