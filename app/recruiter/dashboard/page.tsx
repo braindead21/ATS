@@ -18,6 +18,7 @@ export default function RecruiterDashboard() {
   }, [user?.id]);
 
   const loadStats = async () => {
+    if (!user) return;
     const jobs = await jobOrderService.getByRecruiter(user.id);
     setAssignedJobsCount(jobs.length);
   };
