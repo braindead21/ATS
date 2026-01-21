@@ -17,7 +17,7 @@ export enum JobOrderStatus {
 export interface IJobOrder {
   companyId: mongoose.Types.ObjectId;
   title: string;
-  description: string;
+  description?: string;
   requirements?: string;
   location?: string;
   salaryRange?: string;
@@ -45,7 +45,7 @@ const JobOrderSchema = new Schema<IJobOrder>(
     },
     description: {
       type: String,
-      required: [true, "Job description is required"],
+      required: false,
     },
     requirements: {
       type: String,

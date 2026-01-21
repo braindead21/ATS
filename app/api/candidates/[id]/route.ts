@@ -8,12 +8,14 @@ import Candidate from "@/lib/models/Candidate";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const candidate = await Candidate.findById(params.id)
+    const { id } = await params;
+
+    const candidate = await Candidate.findById(id)
       .populate("jobOrderId", "title")
       .populate("addedBy", "name email");
 
@@ -26,7 +28,9 @@ export async function GET(
 
     const candidateResponse = {
       id: candidate._id.toString(),
-      jobOrderId: candidate.jobOrderId,
+      jobOrderId: typeof candidate.jobOrderId === 'object' && candidate.jobOrderId?._id
+        ? candidate.jobOrderId._id.toString()
+        : candidate.jobOrderId.toString(),
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       email: candidate.email,
@@ -56,15 +60,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
+    const { id } = await params;
     const body = await request.json();
 
     const candidate = await Candidate.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     )
@@ -80,7 +85,9 @@ export async function PUT(
 
     const candidateResponse = {
       id: candidate._id.toString(),
-      jobOrderId: candidate.jobOrderId,
+      jobOrderId: typeof candidate.jobOrderId === 'object' && candidate.jobOrderId?._id
+        ? candidate.jobOrderId._id.toString()
+        : candidate.jobOrderId.toString(),
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       email: candidate.email,
@@ -110,12 +117,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const candidate = await Candidate.findByIdAndDelete(params.id);
+    const { id } = await params;
+
+    const candidate = await Candidate.findByIdAndDelete(id);
 
     if (!candidate) {
       return NextResponse.json(

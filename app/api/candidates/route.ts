@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
 
     const candidatesResponse = candidates.map((candidate) => ({
       id: candidate._id.toString(),
-      jobOrderId: candidate.jobOrderId,
+      jobOrderId: typeof candidate.jobOrderId === 'object' && candidate.jobOrderId?._id
+        ? candidate.jobOrderId._id.toString()
+        : candidate.jobOrderId.toString(),
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       email: candidate.email,

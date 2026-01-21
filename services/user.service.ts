@@ -1,23 +1,31 @@
 import { User } from "@/types";
 import { UserRole } from "@/lib/constants/enums";
-import { mockUsers } from "@/lib/mock-data";
 
 export const userService = {
   // Get all users
   getAll: async (): Promise<User[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return [...mockUsers];
+    const response = await fetch('/api/users');
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+    return response.json();
   },
 
   // Get users by role
   getByRole: async (role: UserRole): Promise<User[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return mockUsers.filter((u) => u.role === role);
+    const response = await fetch(`/api/users?role=${role}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch users by role');
+    }
+    return response.json();
   },
 
   // Get user by ID
   getById: async (id: string): Promise<User | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    return mockUsers.find((u) => u.id === id) || null;
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user');
+    }
+    return response.json();
   },
 };

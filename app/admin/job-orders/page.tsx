@@ -10,7 +10,7 @@ import { jobOrderService } from "@/features/job-orders/services";
 import { companyService } from "@/features/companies/services";
 import { JobOrderTable, AddJobOrderDialog } from "@/features/job-orders/components";
 
-export default function LeaderJobOrdersPage() {
+export default function AdminJobOrdersPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const companyId = searchParams.get('companyId');
@@ -74,7 +74,7 @@ export default function LeaderJobOrdersPage() {
         </Button>
       </div>
 
-      <JobOrderTable jobOrders={jobOrders} companies={companies} basePath="/leader" />
+      <JobOrderTable jobOrders={jobOrders} companies={companies} basePath="/admin" />
 
       <AddJobOrderDialog
         open={showAddDialog}

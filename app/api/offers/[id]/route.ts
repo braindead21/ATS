@@ -8,13 +8,15 @@ import Offer from "@/lib/models/Offer";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const offer = await Offer.findById(params.id)
-      .populate("candidateId", "firstName lastName")
+    const { id } = await params;
+
+    const offer = await Offer.findById(id)
+      .populate("candidateId", "firstName lastName email")
       .populate("jobOrderId", "title")
       .populate("createdBy", "name email");
 
@@ -27,13 +29,21 @@ export async function GET(
 
     const offerResponse = {
       id: offer._id.toString(),
-      candidateId: offer.candidateId,
-      jobOrderId: offer.jobOrderId,
+      candidateId: typeof offer.candidateId === 'object' && offer.candidateId?._id
+        ? offer.candidateId._id.toString()
+        : offer.candidateId.toString(),
+      jobOrderId: typeof offer.jobOrderId === 'object' && offer.jobOrderId?._id
+        ? offer.jobOrderId._id.toString()
+        : offer.jobOrderId.toString(),
       offeredRole: offer.offeredRole,
       offeredSalary: offer.offeredSalary,
       expectedJoiningDate: offer.expectedJoiningDate,
+      joiningBonus: offer.joiningBonus,
+      benefits: offer.benefits,
       offerNotes: offer.offerNotes,
       status: offer.status,
+      offeredAt: offer.offeredAt,
+      respondedAt: offer.respondedAt,
       createdBy: offer.createdBy,
       createdAt: offer.createdAt,
       updatedAt: offer.updatedAt,
@@ -55,19 +65,23 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
+    const { id } = await params;
     const body = await request.json();
 
     const offer = await Offer.findByIdAndUpdate(
-      params.id,
-      body,
+      id,
+      { 
+        ...body, 
+        ...(body.status && body.status !== "OFFERED" ? { respondedAt: new Date() } : {})
+      },
       { new: true, runValidators: true }
     )
-      .populate("candidateId", "firstName lastName")
+      .populate("candidateId", "firstName lastName email")
       .populate("jobOrderId", "title")
       .populate("createdBy", "name email");
 
@@ -78,15 +92,50 @@ export async function PUT(
       );
     }
 
+    // Update candidate status based on offer status
+    if (body.status) {
+      const Candidate = (await import("@/lib/models/Candidate")).default;
+      let candidateStatus = "";
+      switch (body.status) {
+        case "ACCEPTED":
+          candidateStatus = "JOINED";
+          break;
+        case "DECLINED":
+          candidateStatus = "OFFER_DECLINED";
+          break;
+        case "WITHDRAWN":
+          candidateStatus = "REJECTED";
+          break;
+      }
+
+      if (candidateStatus) {
+        await Candidate.findByIdAndUpdate(
+          typeof offer.candidateId === 'object' && offer.candidateId?._id
+            ? offer.candidateId._id
+            : offer.candidateId,
+          { status: candidateStatus },
+          { new: true }
+        );
+      }
+    }
+
     const offerResponse = {
       id: offer._id.toString(),
-      candidateId: offer.candidateId,
-      jobOrderId: offer.jobOrderId,
+      candidateId: typeof offer.candidateId === 'object' && offer.candidateId?._id
+        ? offer.candidateId._id.toString()
+        : offer.candidateId.toString(),
+      jobOrderId: typeof offer.jobOrderId === 'object' && offer.jobOrderId?._id
+        ? offer.jobOrderId._id.toString()
+        : offer.jobOrderId.toString(),
       offeredRole: offer.offeredRole,
       offeredSalary: offer.offeredSalary,
       expectedJoiningDate: offer.expectedJoiningDate,
+      joiningBonus: offer.joiningBonus,
+      benefits: offer.benefits,
       offerNotes: offer.offerNotes,
       status: offer.status,
+      offeredAt: offer.offeredAt,
+      respondedAt: offer.respondedAt,
       createdBy: offer.createdBy,
       createdAt: offer.createdAt,
       updatedAt: offer.updatedAt,
@@ -108,12 +157,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const offer = await Offer.findByIdAndDelete(params.id);
+    const { id } = await params;
+
+    const offer = await Offer.findByIdAndDelete(id);
 
     if (!offer) {
       return NextResponse.json(

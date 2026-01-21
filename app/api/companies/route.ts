@@ -17,6 +17,18 @@ export async function GET() {
     const companiesResponse = companies.map((company) => ({
       id: company._id.toString(),
       name: company.name,
+      primaryPhone: company.primaryPhone,
+      secondaryPhone: company.secondaryPhone,
+      faxNumber: company.faxNumber,
+      address: company.address,
+      city: company.city,
+      state: company.state,
+      postalCode: company.postalCode,
+      webSite: company.webSite,
+      departments: company.departments,
+      keyTechnologies: company.keyTechnologies,
+      miscNotes: company.miscNotes,
+      isHotCompany: company.isHotCompany,
       industry: company.industry,
       location: company.location,
       contactEmail: company.contactEmail,
@@ -46,7 +58,27 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { name, industry, location, contactEmail, contactPhone, status, createdBy } = body;
+    const { 
+      name, 
+      primaryPhone,
+      secondaryPhone,
+      faxNumber,
+      address,
+      city,
+      state,
+      postalCode,
+      webSite,
+      departments,
+      keyTechnologies,
+      miscNotes,
+      isHotCompany,
+      industry, 
+      location, 
+      contactEmail, 
+      contactPhone, 
+      status, 
+      createdBy 
+    } = body;
 
     // Validate required fields
     if (!name || !createdBy) {
@@ -59,6 +91,18 @@ export async function POST(request: NextRequest) {
     // Create new company
     const company = await Company.create({
       name,
+      primaryPhone,
+      secondaryPhone,
+      faxNumber,
+      address,
+      city,
+      state,
+      postalCode,
+      webSite,
+      departments,
+      keyTechnologies,
+      miscNotes,
+      isHotCompany,
       industry,
       location,
       contactEmail,
@@ -75,6 +119,18 @@ export async function POST(request: NextRequest) {
     const companyResponse = {
       id: populatedCompany!._id.toString(),
       name: populatedCompany!.name,
+      primaryPhone: populatedCompany!.primaryPhone,
+      secondaryPhone: populatedCompany!.secondaryPhone,
+      faxNumber: populatedCompany!.faxNumber,
+      address: populatedCompany!.address,
+      city: populatedCompany!.city,
+      state: populatedCompany!.state,
+      postalCode: populatedCompany!.postalCode,
+      webSite: populatedCompany!.webSite,
+      departments: populatedCompany!.departments,
+      keyTechnologies: populatedCompany!.keyTechnologies,
+      miscNotes: populatedCompany!.miscNotes,
+      isHotCompany: populatedCompany!.isHotCompany,
       industry: populatedCompany!.industry,
       location: populatedCompany!.location,
       contactEmail: populatedCompany!.contactEmail,

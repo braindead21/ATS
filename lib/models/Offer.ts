@@ -11,6 +11,7 @@ export enum OfferStatus {
   OFFERED = "OFFERED",
   ACCEPTED = "ACCEPTED",
   DECLINED = "DECLINED",
+  WITHDRAWN = "WITHDRAWN",
 }
 
 export interface IOffer {
@@ -19,8 +20,12 @@ export interface IOffer {
   offeredRole: string;
   offeredSalary: string;
   expectedJoiningDate: Date;
+  joiningBonus?: number;
+  benefits?: string;
   offerNotes?: string;
   status: OfferStatus;
+  offeredAt: Date;
+  respondedAt?: Date;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -33,7 +38,6 @@ const OfferSchema = new Schema<IOffer>(
       ref: "Candidate",
       required: [true, "Candidate ID is required"],
       index: true,
-      unique: true, // One offer per candidate
     },
     jobOrderId: {
       type: Schema.Types.ObjectId,
@@ -55,6 +59,12 @@ const OfferSchema = new Schema<IOffer>(
       type: Date,
       required: [true, "Expected joining date is required"],
     },
+    joiningBonus: {
+      type: Number,
+    },
+    benefits: {
+      type: String,
+    },
     offerNotes: {
       type: String,
     },
@@ -64,6 +74,14 @@ const OfferSchema = new Schema<IOffer>(
       default: OfferStatus.OFFERED,
       required: true,
       index: true,
+    },
+    offeredAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    respondedAt: {
+      type: Date,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
@@ -77,7 +95,8 @@ const OfferSchema = new Schema<IOffer>(
 );
 
 // Indexes for efficient queries
-OfferSchema.index({ status: 1, createdAt: -1 });
+OfferSchema.index({ candidateId: 1, status: 1 });
+OfferSchema.index({ offeredAt: 1 });
 
 // Prevent model recompilation in development
 const Offer: Model<IOffer> =

@@ -35,6 +35,15 @@ export enum InterviewLevel {
 export enum InterviewStatus {
   SCHEDULED = "SCHEDULED",
   COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+// Interview Outcome
+export enum InterviewOutcome {
+  HIRED = "HIRED",
+  REJECTED = "REJECTED",
+  NEXT_INTERVIEW = "NEXT_INTERVIEW",
+  ON_HOLD = "ON_HOLD",
 }
 
 // Job Order Status
@@ -56,4 +65,5 @@ export enum OfferStatus {
   OFFERED = "OFFERED",
   ACCEPTED = "ACCEPTED",
   DECLINED = "DECLINED",
+  WITHDRAWN = "WITHDRAWN",
 }

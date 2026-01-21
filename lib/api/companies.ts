@@ -5,6 +5,18 @@
 export interface CompanyData {
   id?: string;
   name: string;
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  faxNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  webSite?: string;
+  departments?: string;
+  keyTechnologies?: string;
+  miscNotes?: string;
+  isHotCompany?: boolean;
   industry?: string;
   location?: string;
   contactEmail?: string;
@@ -16,6 +28,18 @@ export interface CompanyData {
 export interface CompanyResponse {
   id: string;
   name: string;
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  faxNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  webSite?: string;
+  departments?: string;
+  keyTechnologies?: string;
+  miscNotes?: string;
+  isHotCompany?: boolean;
   industry?: string;
   location?: string;
   contactEmail?: string;

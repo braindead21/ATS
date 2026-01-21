@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Company } from "@/types";
 import { CompanyStatus } from "@/lib/constants/enums";
 import { Button, Input, Label, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "@/components/ui";
 import { companyService } from "@/features/companies/services";
 
-interface AddCompanyDialogProps {
+interface EditCompanyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCompanyAdded: (company: Company) => void;
-  createdBy: string;
+  onCompanyUpdated: (company: Company) => void;
+  company: Company;
 }
 
-export function AddCompanyDialog({ open, onOpenChange, onCompanyAdded, createdBy }: AddCompanyDialogProps) {
+export function EditCompanyDialog({ open, onOpenChange, onCompanyUpdated, company }: EditCompanyDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -35,45 +35,51 @@ export function AddCompanyDialog({ open, onOpenChange, onCompanyAdded, createdBy
     contactPhone: "",
   });
 
-  const handleReset = () => {
-    setFormData({
-      name: "",
-      primaryPhone: "",
-      secondaryPhone: "",
-      faxNumber: "",
-      address: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      webSite: "",
-      departments: "",
-      keyTechnologies: "",
-      miscNotes: "",
-      isHotCompany: false,
-      industry: "",
-      location: "",
-      contactEmail: "",
-      contactPhone: "",
-    });
-  };
+  // Populate form when company data changes
+  useEffect(() => {
+    if (company) {
+      setFormData({
+        name: company.name || "",
+        primaryPhone: company.primaryPhone || "",
+        secondaryPhone: company.secondaryPhone || "",
+        faxNumber: company.faxNumber || "",
+        address: company.address || "",
+        city: company.city || "",
+        state: company.state || "",
+        postalCode: company.postalCode || "",
+        webSite: company.webSite || "",
+        departments: company.departments || "",
+        keyTechnologies: company.keyTechnologies || "",
+        miscNotes: company.miscNotes || "",
+        isHotCompany: company.isHotCompany || false,
+        industry: company.industry || "",
+        location: company.location || "",
+        contactEmail: company.contactEmail || "",
+        contactPhone: company.contactPhone || "",
+      });
+    }
+  }, [company]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const newCompany = await companyService.create({
+      const updatedCompany = await companyService.update(company.id, {
         ...formData,
-        status: CompanyStatus.ACTIVE,
-        createdBy,
+        status: company.status,
+        createdBy: company.createdBy,
       });
 
-      onCompanyAdded(newCompany);
-      onOpenChange(false);
-      handleReset();
+      if (updatedCompany) {
+        onCompanyUpdated(updatedCompany);
+        onOpenChange(false);
+      } else {
+        alert("Failed to update company. Please try again.");
+      }
     } catch (error) {
-      console.error("Failed to create company:", error);
-      alert("Failed to create company. Please try again.");
+      console.error("Failed to update company:", error);
+      alert("Failed to update company. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +89,7 @@ export function AddCompanyDialog({ open, onOpenChange, onCompanyAdded, createdBy
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Company</DialogTitle>
+          <DialogTitle>Edit Company</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -265,21 +271,13 @@ export function AddCompanyDialog({ open, onOpenChange, onCompanyAdded, createdBy
             <Button
               type="button"
               variant="outline"
-              onClick={handleReset}
-              disabled={isLoading}
-            >
-              Reset
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Company"}
+              {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

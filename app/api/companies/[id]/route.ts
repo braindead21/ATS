@@ -8,12 +8,14 @@ import Company from "@/lib/models/Company";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    
+    const { id } = await params;
 
-    const company = await Company.findById(params.id).populate(
+    const company = await Company.findById(id).populate(
       "createdBy",
       "name email"
     );
@@ -28,6 +30,18 @@ export async function GET(
     const companyResponse = {
       id: company._id.toString(),
       name: company.name,
+      primaryPhone: company.primaryPhone,
+      secondaryPhone: company.secondaryPhone,
+      faxNumber: company.faxNumber,
+      address: company.address,
+      city: company.city,
+      state: company.state,
+      postalCode: company.postalCode,
+      webSite: company.webSite,
+      departments: company.departments,
+      keyTechnologies: company.keyTechnologies,
+      miscNotes: company.miscNotes,
+      isHotCompany: company.isHotCompany,
       industry: company.industry,
       location: company.location,
       contactEmail: company.contactEmail,
@@ -54,18 +68,51 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    
+    const { id } = await params;
 
     const body = await request.json();
-    const { name, industry, location, contactEmail, contactPhone, status } = body;
+    const { 
+      name, 
+      primaryPhone,
+      secondaryPhone,
+      faxNumber,
+      address,
+      city,
+      state,
+      postalCode,
+      webSite,
+      departments,
+      keyTechnologies,
+      miscNotes,
+      isHotCompany,
+      industry, 
+      location, 
+      contactEmail, 
+      contactPhone, 
+      status 
+    } = body;
 
     const company = await Company.findByIdAndUpdate(
-      params.id,
+      id,
       {
         name,
+        primaryPhone,
+        secondaryPhone,
+        faxNumber,
+        address,
+        city,
+        state,
+        postalCode,
+        webSite,
+        departments,
+        keyTechnologies,
+        miscNotes,
+        isHotCompany,
         industry,
         location,
         contactEmail,
@@ -85,6 +132,18 @@ export async function PUT(
     const companyResponse = {
       id: company._id.toString(),
       name: company.name,
+      primaryPhone: company.primaryPhone,
+      secondaryPhone: company.secondaryPhone,
+      faxNumber: company.faxNumber,
+      address: company.address,
+      city: company.city,
+      state: company.state,
+      postalCode: company.postalCode,
+      webSite: company.webSite,
+      departments: company.departments,
+      keyTechnologies: company.keyTechnologies,
+      miscNotes: company.miscNotes,
+      isHotCompany: company.isHotCompany,
       industry: company.industry,
       location: company.location,
       contactEmail: company.contactEmail,
@@ -111,12 +170,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    
+    const { id } = await params;
 
-    const company = await Company.findByIdAndDelete(params.id);
+    const company = await Company.findByIdAndDelete(id);
 
     if (!company) {
       return NextResponse.json(

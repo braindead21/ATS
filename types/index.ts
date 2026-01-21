@@ -1,7 +1,7 @@
-import { UserRole, CandidateStatus, InterviewLevel, InterviewStatus, JobOrderStatus, CompanyStatus, OfferStatus } from "@/lib/constants/enums";
+import { UserRole, CandidateStatus, InterviewLevel, InterviewStatus, InterviewOutcome, JobOrderStatus, CompanyStatus, OfferStatus } from "@/lib/constants/enums";
 
 // Re-export enums for convenience
-export { UserRole, CandidateStatus, InterviewLevel, InterviewStatus, JobOrderStatus, CompanyStatus, OfferStatus };
+export { UserRole, CandidateStatus, InterviewLevel, InterviewStatus, InterviewOutcome, JobOrderStatus, CompanyStatus, OfferStatus };
 
 // User
 export interface User {
@@ -17,12 +17,24 @@ export interface User {
 export interface Company {
   id: string;
   name: string;
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  faxNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  webSite?: string;
+  departments?: string;
+  keyTechnologies?: string;
+  miscNotes?: string;
+  isHotCompany?: boolean;
   industry?: string;
   location?: string;
   contactEmail?: string;
   contactPhone?: string;
   status: CompanyStatus;
-  createdBy: string;
+  createdBy: string | User;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,7 +44,7 @@ export interface JobOrder {
   id: string;
   companyId: string;
   title: string;
-  description: string;
+  description?: string;
   requirements?: string;
   location?: string;
   salaryRange?: string;
@@ -69,6 +81,7 @@ export interface Interview {
   level: InterviewLevel;
   scheduledAt: Date;
   status: InterviewStatus;
+  outcome?: InterviewOutcome;
   feedback?: string;
   interviewerName?: string;
   createdBy: string;
@@ -84,8 +97,12 @@ export interface Offer {
   offeredRole: string;
   offeredSalary: string;
   expectedJoiningDate: Date;
+  joiningBonus?: number;
+  benefits?: string;
   offerNotes?: string;
   status: OfferStatus;
+  offeredAt: Date;
+  respondedAt?: Date;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

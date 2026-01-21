@@ -8,12 +8,14 @@ import JobOrder from "@/lib/models/JobOrder";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const jobOrder = await JobOrder.findById(params.id)
+    const { id } = await params;
+
+    const jobOrder = await JobOrder.findById(id)
       .populate("companyId", "name")
       .populate("createdBy", "name email")
       .populate("assignedRecruiters", "name email");
@@ -27,7 +29,9 @@ export async function GET(
 
     const jobOrderResponse = {
       id: jobOrder._id.toString(),
-      companyId: jobOrder.companyId,
+      companyId: typeof jobOrder.companyId === 'object' && jobOrder.companyId?._id
+        ? jobOrder.companyId._id.toString()
+        : jobOrder.companyId.toString(),
       title: jobOrder.title,
       description: jobOrder.description,
       requirements: jobOrder.requirements,
@@ -36,7 +40,11 @@ export async function GET(
       positions: jobOrder.positions,
       status: jobOrder.status,
       createdBy: jobOrder.createdBy,
-      assignedRecruiters: jobOrder.assignedRecruiters,
+      assignedRecruiters: jobOrder.assignedRecruiters.map((recruiter: any) =>
+        typeof recruiter === 'object' && recruiter._id
+          ? recruiter._id.toString()
+          : recruiter.toString()
+      ),
       createdAt: jobOrder.createdAt,
       updatedAt: jobOrder.updatedAt,
     };
@@ -57,15 +65,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
+    const { id } = await params;
     const body = await request.json();
 
     const jobOrder = await JobOrder.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     )
@@ -82,7 +91,9 @@ export async function PUT(
 
     const jobOrderResponse = {
       id: jobOrder._id.toString(),
-      companyId: jobOrder.companyId,
+      companyId: typeof jobOrder.companyId === 'object' && jobOrder.companyId?._id
+        ? jobOrder.companyId._id.toString()
+        : jobOrder.companyId.toString(),
       title: jobOrder.title,
       description: jobOrder.description,
       requirements: jobOrder.requirements,
@@ -91,7 +102,11 @@ export async function PUT(
       positions: jobOrder.positions,
       status: jobOrder.status,
       createdBy: jobOrder.createdBy,
-      assignedRecruiters: jobOrder.assignedRecruiters,
+      assignedRecruiters: jobOrder.assignedRecruiters.map((recruiter: any) =>
+        typeof recruiter === 'object' && recruiter._id
+          ? recruiter._id.toString()
+          : recruiter.toString()
+      ),
       createdAt: jobOrder.createdAt,
       updatedAt: jobOrder.updatedAt,
     };
@@ -112,12 +127,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const jobOrder = await JobOrder.findByIdAndDelete(params.id);
+    const { id } = await params;
+
+    const jobOrder = await JobOrder.findByIdAndDelete(id);
 
     if (!jobOrder) {
       return NextResponse.json(

@@ -27,6 +27,8 @@ export function CreateOfferDialog({
     offeredRole: jobTitle,
     offeredSalary: "",
     expectedJoiningDate: "",
+    joiningBonus: "",
+    benefits: "",
     offerNotes: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +44,10 @@ export function CreateOfferDialog({
         offeredRole: formData.offeredRole,
         offeredSalary: formData.offeredSalary,
         expectedJoiningDate: new Date(formData.expectedJoiningDate),
+        joiningBonus: formData.joiningBonus ? Number(formData.joiningBonus) : undefined,
+        benefits: formData.benefits || undefined,
         offerNotes: formData.offerNotes || undefined,
+        offeredAt: new Date(),
         createdBy,
       });
 
@@ -51,6 +56,8 @@ export function CreateOfferDialog({
         offeredRole: jobTitle,
         offeredSalary: "",
         expectedJoiningDate: "",
+        joiningBonus: "",
+        benefits: "",
         offerNotes: "",
       });
       onOpenChange(false);
@@ -102,13 +109,35 @@ export function CreateOfferDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="joiningBonus">Joining Bonus (Optional)</Label>
+            <Input
+              id="joiningBonus"
+              type="number"
+              value={formData.joiningBonus}
+              onChange={(e) => setFormData({ ...formData, joiningBonus: e.target.value })}
+              placeholder="e.g., 10000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="benefits">Benefits Package (Optional)</Label>
+            <Textarea
+              id="benefits"
+              value={formData.benefits}
+              onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+              placeholder="Health insurance, 401k matching, stock options, etc."
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="offerNotes">Offer Notes (Optional)</Label>
             <Textarea
               id="offerNotes"
               value={formData.offerNotes}
               onChange={(e) => setFormData({ ...formData, offerNotes: e.target.value })}
               placeholder="Additional details, benefits, etc."
-              rows={3}
+              rows={2}
             />
           </div>
 

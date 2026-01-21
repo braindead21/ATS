@@ -18,7 +18,9 @@ export async function GET() {
 
     const jobOrdersResponse = jobOrders.map((jobOrder) => ({
       id: jobOrder._id.toString(),
-      companyId: jobOrder.companyId,
+      companyId: typeof jobOrder.companyId === 'object' && jobOrder.companyId?._id 
+        ? jobOrder.companyId._id.toString() 
+        : jobOrder.companyId.toString(),
       title: jobOrder.title,
       description: jobOrder.description,
       requirements: jobOrder.requirements,
@@ -27,7 +29,11 @@ export async function GET() {
       positions: jobOrder.positions,
       status: jobOrder.status,
       createdBy: jobOrder.createdBy,
-      assignedRecruiters: jobOrder.assignedRecruiters,
+      assignedRecruiters: jobOrder.assignedRecruiters.map((recruiter: any) =>
+        typeof recruiter === 'object' && recruiter._id
+          ? recruiter._id.toString()
+          : recruiter.toString()
+      ),
       createdAt: jobOrder.createdAt,
       updatedAt: jobOrder.updatedAt,
     }));
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!companyId || !title || !description || !createdBy) {
+    if (!companyId || !title || !createdBy) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

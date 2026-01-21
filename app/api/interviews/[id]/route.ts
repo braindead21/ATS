@@ -8,13 +8,15 @@ import Interview from "@/lib/models/Interview";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const interview = await Interview.findById(params.id)
-      .populate("candidateId", "firstName lastName")
+    const { id } = await params;
+
+    const interview = await Interview.findById(id)
+      .populate("candidateId", "firstName lastName email")
       .populate("jobOrderId", "title")
       .populate("createdBy", "name email");
 
@@ -27,11 +29,16 @@ export async function GET(
 
     const interviewResponse = {
       id: interview._id.toString(),
-      candidateId: interview.candidateId,
-      jobOrderId: interview.jobOrderId,
+      candidateId: typeof interview.candidateId === 'object' && interview.candidateId?._id
+        ? interview.candidateId._id.toString()
+        : interview.candidateId.toString(),
+      jobOrderId: typeof interview.jobOrderId === 'object' && interview.jobOrderId?._id
+        ? interview.jobOrderId._id.toString()
+        : interview.jobOrderId.toString(),
       level: interview.level,
       scheduledAt: interview.scheduledAt,
       status: interview.status,
+      outcome: interview.outcome,
       feedback: interview.feedback,
       interviewerName: interview.interviewerName,
       createdBy: interview.createdBy,
@@ -55,19 +62,20 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
+    const { id } = await params;
     const body = await request.json();
 
     const interview = await Interview.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     )
-      .populate("candidateId", "firstName lastName")
+      .populate("candidateId", "firstName lastName email")
       .populate("jobOrderId", "title")
       .populate("createdBy", "name email");
 
@@ -78,13 +86,48 @@ export async function PUT(
       );
     }
 
+    // Update candidate status based on interview outcome
+    if (body.outcome) {
+      const Candidate = (await import("@/lib/models/Candidate")).default;
+      let candidateStatus = "";
+      switch (body.outcome) {
+        case "HIRED":
+          candidateStatus = "HIRED";
+          break;
+        case "REJECTED":
+          candidateStatus = "REJECTED";
+          break;
+        case "NEXT_INTERVIEW":
+          candidateStatus = "NEXT_INTERVIEW";
+          break;
+        case "ON_HOLD":
+          candidateStatus = "ON_HOLD";
+          break;
+      }
+
+      if (candidateStatus) {
+        await Candidate.findByIdAndUpdate(
+          typeof interview.candidateId === 'object' && interview.candidateId?._id
+            ? interview.candidateId._id
+            : interview.candidateId,
+          { status: candidateStatus },
+          { new: true }
+        );
+      }
+    }
+
     const interviewResponse = {
       id: interview._id.toString(),
-      candidateId: interview.candidateId,
-      jobOrderId: interview.jobOrderId,
+      candidateId: typeof interview.candidateId === 'object' && interview.candidateId?._id
+        ? interview.candidateId._id.toString()
+        : interview.candidateId.toString(),
+      jobOrderId: typeof interview.jobOrderId === 'object' && interview.jobOrderId?._id
+        ? interview.jobOrderId._id.toString()
+        : interview.jobOrderId.toString(),
       level: interview.level,
       scheduledAt: interview.scheduledAt,
       status: interview.status,
+      outcome: interview.outcome,
       feedback: interview.feedback,
       interviewerName: interview.interviewerName,
       createdBy: interview.createdBy,
@@ -108,12 +151,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const interview = await Interview.findByIdAndDelete(params.id);
+    const { id } = await params;
+
+    const interview = await Interview.findByIdAndDelete(id);
 
     if (!interview) {
       return NextResponse.json(

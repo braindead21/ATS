@@ -6,7 +6,7 @@ import { Calendar, CheckCircle2, Clock } from "lucide-react";
 
 interface InterviewTimelineProps {
   interviews: Interview[];
-  onMarkCompleted?: (interviewId: string) => void;
+  onMarkCompleted?: (interviewId: string, level: string) => void;
   canEdit?: boolean;
 }
 
@@ -79,15 +79,33 @@ export function InterviewTimeline({ interviews, onMarkCompleted, canEdit = false
                       <p className="text-muted-foreground">{interview.feedback}</p>
                     </div>
                   )}
+
+                  {interview.outcome && (
+                    <div className="mt-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          interview.outcome === "HIRED"
+                            ? "bg-green-100 text-green-700"
+                            : interview.outcome === "REJECTED"
+                            ? "bg-red-100 text-red-700"
+                            : interview.outcome === "NEXT_INTERVIEW"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {interview.outcome.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {canEdit && !isCompleted && isPast && (
+              {canEdit && !isCompleted && (
                 <button
-                  onClick={() => onMarkCompleted?.(interview.id)}
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                  onClick={() => onMarkCompleted?.(interview.id, interview.level)}
+                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md transition"
                 >
-                  Mark Completed
+                  Complete Interview
                 </button>
               )}
             </div>

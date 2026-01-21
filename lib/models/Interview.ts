@@ -17,6 +17,14 @@ export enum InterviewLevel {
 export enum InterviewStatus {
   SCHEDULED = "SCHEDULED",
   COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum InterviewOutcome {
+  HIRED = "HIRED",
+  REJECTED = "REJECTED",
+  NEXT_INTERVIEW = "NEXT_INTERVIEW",
+  ON_HOLD = "ON_HOLD",
 }
 
 export interface IInterview {
@@ -25,6 +33,7 @@ export interface IInterview {
   level: InterviewLevel;
   scheduledAt: Date;
   status: InterviewStatus;
+  outcome?: InterviewOutcome;
   feedback?: string;
   interviewerName?: string;
   createdBy: mongoose.Types.ObjectId;
@@ -62,6 +71,10 @@ const InterviewSchema = new Schema<IInterview>(
       default: InterviewStatus.SCHEDULED,
       required: true,
       index: true,
+    },
+    outcome: {
+      type: String,
+      enum: Object.values(InterviewOutcome),
     },
     feedback: {
       type: String,

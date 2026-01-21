@@ -1,12 +1,13 @@
-import { CandidateStatus } from "@/lib/constants/enums";
+import { CandidateStatus, JobOrderStatus } from "@/lib/constants/enums";
 
 interface StatusBadgeProps {
-  status: CandidateStatus;
+  status: CandidateStatus | JobOrderStatus | string;
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const getStatusColor = (status: CandidateStatus) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
+      // Candidate statuses
       case CandidateStatus.NO_CONTACT:
         return "bg-gray-100 text-gray-700";
       case CandidateStatus.CONTACTED:
@@ -35,12 +36,21 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         return "bg-orange-100 text-orange-700";
       case CandidateStatus.TERMINATED:
         return "bg-red-100 text-red-700";
+      // Job Order statuses
+      case JobOrderStatus.OPEN:
+        return "bg-green-100 text-green-700";
+      case JobOrderStatus.ON_HOLD:
+        return "bg-yellow-100 text-yellow-700";
+      case JobOrderStatus.CLOSED:
+        return "bg-gray-100 text-gray-700";
+      case JobOrderStatus.CANCELLED:
+        return "bg-red-100 text-red-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
 
-  const getStatusLabel = (status: CandidateStatus) => {
+  const getStatusLabel = (status: string) => {
     return status.replace(/_/g, " ");
   };
 

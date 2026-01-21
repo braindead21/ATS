@@ -12,8 +12,8 @@ import { jobOrderService } from "@/features/job-orders/services";
 import { interviewService } from "@/features/interviews/services";
 import { offerService } from "@/features/offers/services";
 import { CandidateActions } from "@/features/candidates/components";
-import { InterviewTimeline, ScheduleInterviewDialog, DecisionModal } from "@/features/interviews/components";
-import { OfferCard, CreateOfferDialog, OfferDecisionDialog, JoiningDialog, PostJoiningDialog } from "@/features/offers/components";
+import { InterviewTimeline, ScheduleInterviewDialog, InterviewOutcomeDialog } from "@/features/interviews/components";
+import { OfferCard, CreateOfferDialog, UpdateOfferStatusDialog, JoiningDialog, PostJoiningDialog } from "@/features/offers/components";
 
 export default function CandidateDetailPage() {
   const params = useParams();
@@ -27,10 +27,11 @@ export default function CandidateDetailPage() {
   const [offer, setOffer] = useState<Offer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
-  const [showDecisionModal, setShowDecisionModal] = useState(false);
-  const [completedInterviewId, setCompletedInterviewId] = useState<string | null>(null);
+  const [showInterviewOutcomeDialog, setShowInterviewOutcomeDialog] = useState(false);
+  const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
+  const [selectedInterviewLevel, setSelectedInterviewLevel] = useState<string>("");
   const [showCreateOfferDialog, setShowCreateOfferDialog] = useState(false);
-  const [showOfferDecisionDialog, setShowOfferDecisionDialog] = useState(false);
+  const [showUpdateOfferDialog, setShowUpdateOfferDialog] = useState(false);
   const [showJoiningDialog, setShowJoiningDialog] = useState(false);
   const [showPostJoiningDialog, setShowPostJoiningDialog] = useState(false);
 
@@ -89,28 +90,17 @@ export default function CandidateDetailPage() {
     setInterviews([...interviews, newInterview]);
   };
 
-  const handleMarkCompleted = async (interviewId: string) => {
-    setCompletedInterviewId(interviewId);
-    setShowDecisionModal(true);
+  const handleMarkCompleted = async (interviewId: string, level: string) => {
+    setSelectedInterviewId(interviewId);
+    setSelectedInterviewLevel(level);
+    setShowInterviewOutcomeDialog(true);
   };
 
-  const handleDecision = async (decision: CandidateStatus, notes?: string) => {
-    if (!completedInterviewId || !candidate) return;
-
-    // Mark interview as completed with feedback
-    await interviewService.markCompleted(completedInterviewId, notes);
-
-    // Update candidate status based on decision
-    const updatedCandidate = await candidateService.updateStatus(candidate.id, decision);
-    if (updatedCandidate) {
-      setCandidate(updatedCandidate);
-    }
-
-    // Reload interviews to show updated status
-    const updatedInterviews = await interviewService.getByCandidate(candidateId);
-    setInterviews(updatedInterviews);
-
-    setCompletedInterviewId(null);
+  const handleInterviewOutcomeSuccess = async () => {
+    // Reload data after interview outcome is saved
+    await loadData();
+    setSelectedInterviewId(null);
+    setSelectedInterviewLevel("");
   };
 
   const handleCreateOffer = async (offerData: Omit<Offer, "id" | "createdAt" | "updatedAt" | "status">) => {
@@ -127,20 +117,9 @@ export default function CandidateDetailPage() {
     }
   };
 
-  const handleOfferDecision = async (accepted: boolean, notes?: string) => {
-    if (!offer) return;
-
-    const newStatus = accepted ? OfferStatus.ACCEPTED : OfferStatus.DECLINED;
-    await offerService.updateStatus(offer.id, newStatus);
-
-    const candidateStatus = accepted ? CandidateStatus.OFFER_ACCEPTED : CandidateStatus.OFFER_DECLINED;
-    const updatedCandidate = await candidateService.updateStatus(candidateId, candidateStatus);
-    if (updatedCandidate) {
-      setCandidate(updatedCandidate);
-    }
-
-    const updatedOffer = await offerService.getByCandidate(candidateId);
-    setOffer(updatedOffer);
+  const handleOfferStatusUpdate = async () => {
+    // Reload data after offer status is updated
+    await loadData();
   };
 
   const handleJoined = async (joinDate: Date) => {
@@ -306,7 +285,7 @@ export default function CandidateDetailPage() {
         
         <InterviewTimeline
           interviews={interviews}
-          onMarkCompleted={canEdit && !isTerminalState ? handleMarkCompleted : undefined}
+          onMarkCompleted={canEdit && !isTerminalState ? (id, level) => handleMarkCompleted(id, level) : undefined}
           canEdit={canEdit && !isTerminalState}
         />
       </div>
@@ -329,8 +308,8 @@ export default function CandidateDetailPage() {
               <OfferCard offer={offer} />
               
               {canEdit && offer.status === OfferStatus.OFFERED && (
-                <Button onClick={() => setShowOfferDecisionDialog(true)} className="w-full">
-                  Record Offer Decision
+                <Button onClick={() => setShowUpdateOfferDialog(true)} className="w-full">
+                  Update Offer Status
                 </Button>
               )}
 
@@ -363,12 +342,16 @@ export default function CandidateDetailPage() {
         createdBy={user.id}
       />
 
-      {completedInterviewId && (
-        <DecisionModal
-          open={showDecisionModal}
-          onOpenChange={setShowDecisionModal}
-          onDecision={handleDecision}
-          interviewLevel={interviews.find(iv => iv.id === completedInterviewId)?.level || ""}
+      {selectedInterviewId && (
+        <InterviewOutcomeDialog
+          interviewId={selectedInterviewId}
+          currentLevel={selectedInterviewLevel}
+          onClose={() => {
+            setShowInterviewOutcomeDialog(false);
+            setSelectedInterviewId(null);
+            setSelectedInterviewLevel("");
+          }}
+          onSuccess={handleInterviewOutcomeSuccess}
         />
       )}
 
@@ -384,11 +367,15 @@ export default function CandidateDetailPage() {
         />
       )}
 
-      <OfferDecisionDialog
-        open={showOfferDecisionDialog}
-        onOpenChange={setShowOfferDecisionDialog}
-        onDecision={handleOfferDecision}
-      />
+      {offer && showUpdateOfferDialog && (
+        <UpdateOfferStatusDialog
+          offerId={offer.id}
+          currentStatus={offer.status}
+          candidateName={`${candidate.firstName} ${candidate.lastName}`}
+          onClose={() => setShowUpdateOfferDialog(false)}
+          onSuccess={handleOfferStatusUpdate}
+        />
+      )}
 
       {offer && (
         <JoiningDialog

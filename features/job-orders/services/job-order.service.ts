@@ -25,11 +25,23 @@ export const jobOrderService = {
   // Get job orders by recruiter
   getByRecruiter: async (recruiterId: string): Promise<JobOrder[]> => {
     const allJobOrders = await jobOrderService.getAll();
-    return allJobOrders.filter((jo) => 
-      jo.assignedRecruiters.some((r: any) => 
-        typeof r === 'string' ? r === recruiterId : r.id === recruiterId
-      )
-    );
+    console.log('🔍 Filtering job orders for recruiter:', recruiterId);
+    console.log('📋 All job orders:', allJobOrders.length);
+    console.log('📋 First job order assignedRecruiters:', allJobOrders[0]?.assignedRecruiters);
+    
+    const filtered = allJobOrders.filter((jo) => {
+      const hasRecruiter = jo.assignedRecruiters.some((r: any) => {
+        const isMatch = typeof r === 'string' ? r === recruiterId : r.id === recruiterId;
+        if (isMatch) {
+          console.log('✅ Match found in job:', jo.title);
+        }
+        return isMatch;
+      });
+      return hasRecruiter;
+    });
+    
+    console.log('✅ Filtered job orders:', filtered.length);
+    return filtered;
   },
 
   // Get job order by ID
@@ -61,7 +73,7 @@ export const jobOrderService = {
     const response = await jobOrdersApi.createJobOrder({
       companyId: typeof data.companyId === 'string' ? data.companyId : (data.companyId as any).id,
       title: data.title,
-      description: data.description,
+      description: data.description || "",
       requirements: data.requirements,
       location: data.location,
       salaryRange: data.salaryRange,
@@ -77,7 +89,7 @@ export const jobOrderService = {
       id: response.id,
       companyId: response.companyId,
       title: response.title,
-      description: response.description,
+      description: data.description,
       requirements: response.requirements,
       location: response.location,
       salaryRange: response.salaryRange,
