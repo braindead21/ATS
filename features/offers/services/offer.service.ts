@@ -96,9 +96,13 @@ export const offerService = {
       offeredRole: response.offeredRole,
       offeredSalary: String(response.offeredSalary),
       expectedJoiningDate: new Date(response.expectedJoiningDate),
+      joiningBonus: response.joiningBonus,
+      benefits: response.benefits,
       offerNotes: response.offerNotes,
       status: response.status as any,
       createdBy: response.createdBy,
+      offeredAt: new Date(response.offeredAt),
+      respondedAt: response.respondedAt ? new Date(response.respondedAt) : undefined,
       createdAt: new Date(response.createdAt),
       updatedAt: new Date(response.updatedAt),
     };
