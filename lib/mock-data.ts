@@ -273,6 +273,8 @@ export const mockOffers: Offer[] = [
     offerNotes: "Competitive package with benefits and sign-on bonus.",
     status: OfferStatus.OFFERED,
     createdBy: "3",
+    offeredAt: new Date("2024-02-01"),
+    respondedAt: undefined,
     createdAt: new Date("2024-02-01"),
     updatedAt: new Date("2024-02-01"),
   },
