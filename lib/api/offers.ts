@@ -21,9 +21,13 @@ export interface OfferResponse {
   offeredRole: string;
   offeredSalary: number;
   expectedJoiningDate: string;
+  joiningBonus?: number;
+  benefits?: string;
   offerNotes?: string;
   status: string;
   createdBy: any;
+  offeredAt: string;
+  respondedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
